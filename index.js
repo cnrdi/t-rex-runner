@@ -44,8 +44,8 @@
 
         this.obstacles = [];
 
-        this.activated = false; // Whether the easter egg has been activated.
-        this.playing = false; // Whether the game is currently in play state.
+        this.activated = true; // Whether the easter egg has been activated.
+        this.playing = true; // Whether the game is currently in play state.
         this.crashed = false;
         this.paused = false;
         this.inverted = false;
@@ -132,7 +132,7 @@
      * @enum {string}
      */
     Runner.defaultDimensions = {
-        WIDTH: DEFAULT_WIDTH,
+        WIDTH: 600,
         HEIGHT: 150
     };
 
@@ -359,8 +359,10 @@
             this.containerEl.className = Runner.classes.CONTAINER;
 
             // Player canvas container.
-            this.canvas = createCanvas(this.containerEl, this.dimensions.WIDTH,
-                this.dimensions.HEIGHT, Runner.classes.PLAYER);
+            this.canvas = createCanvas(this.containerEl, 600,
+                150, Runner.classes.PLAYER);
+
+            this.canvas.setAttribute("id", "dino-canvas");
 
             this.canvasCtx = this.canvas.getContext('2d');
             this.canvasCtx.fillStyle = '#f7f7f7';
@@ -386,9 +388,6 @@
 
             this.startListening();
             this.update();
-
-            window.addEventListener(Runner.events.RESIZE,
-                this.debounceResize.bind(this));
         },
 
         /**
@@ -447,7 +446,7 @@
 
                 // Game over panel.
                 if (this.crashed && this.gameOverPanel) {
-                    this.gameOverPanel.updateDimensions(this.dimensions.WIDTH);
+                    this.gameOverPanel.updateDimensions(600);
                     this.gameOverPanel.draw();
                 }
             }
@@ -508,8 +507,8 @@
         },
 
         clearCanvas: function () {
-            this.canvasCtx.clearRect(0, 0, this.dimensions.WIDTH,
-                this.dimensions.HEIGHT);
+            this.canvasCtx.clearRect(0, 0, 600,
+                150);
         },
 
         /**
@@ -552,6 +551,15 @@
 
                 if (!collision) {
                     this.distanceRan += this.currentSpeed * deltaTime / this.msPerFrame;
+
+                    if(this.tRex.ducking && !this.isDuckingExtraPoints) {
+                        this.isDuckingExtraPoints = true;
+                        this.distanceRan += 100;
+                    }
+                    if(!this.tRex.ducking) {
+                        this.isDuckingExtraPoints = false;
+                    }
+
 
                     if (this.currentSpeed < this.config.MAX_SPEED) {
                         this.currentSpeed += this.config.ACCELERATION;
@@ -778,7 +786,7 @@
             if (!this.gameOverPanel) {
                 this.gameOverPanel = new GameOverPanel(this.canvas,
                     this.spriteDef.TEXT_SPRITE, this.spriteDef.RESTART,
-                    this.dimensions);
+                    {WIDTH: 600, HEIGHT: 150});
             } else {
                 this.gameOverPanel.draw();
             }
@@ -1609,10 +1617,11 @@
             this.groundYPos = Runner.defaultDimensions.HEIGHT - this.config.HEIGHT -
                 Runner.config.BOTTOM_PAD;
             this.yPos = this.groundYPos;
+            this.xPos = 25;
             this.minJumpHeight = this.groundYPos - this.config.MIN_JUMP_HEIGHT;
 
             this.draw(0, 0);
-            this.update(0, Trex.status.WAITING);
+            this.update(0, Trex.status.RUNNING);
         },
 
         /**
@@ -1631,6 +1640,8 @@
          */
         update: function (deltaTime, opt_status) {
             this.timer += deltaTime;
+
+            
 
             // Update the status.
             if (opt_status) {
@@ -1931,6 +1942,11 @@
             }
 
             this.maxScore = parseInt(maxDistanceStr);
+
+            var storedHighScore = localStorage.getItem("highSore");
+            if(storedHighScore) {
+                this.setHighScore(parseInt(storedHighScore));
+            }
         },
 
         /**
@@ -1973,11 +1989,11 @@
 
             if (opt_highScore) {
                 // Left of the current score.
-                var highScoreX = this.x - (this.maxScoreUnits * 2) *
+                var highScoreX = 520 - (this.maxScoreUnits * 2) *
                     DistanceMeter.dimensions.WIDTH;
-                this.canvasCtx.translate(highScoreX, this.y);
+                this.canvasCtx.translate(highScoreX, 0);
             } else {
-                this.canvasCtx.translate(this.x, this.y);
+                this.canvasCtx.translate(520, 0);
             }
 
             this.canvasCtx.drawImage(this.image, sourceX, sourceY,
@@ -2083,6 +2099,7 @@
          * @param {number} distance Distance ran in pixels.
          */
         setHighScore: function (distance) {
+            localStorage.setItem("highSore", distance);
             distance = this.getActualDistance(distance);
             var highScoreStr = (this.defaultString +
                 distance).substr(-this.maxScoreUnits);
@@ -2495,7 +2512,7 @@
         this.canvas = canvas;
         this.canvasCtx = this.canvas.getContext('2d');
         this.config = Horizon.config;
-        this.dimensions = dimensions;
+        this.dimensions = {WIDTH: 600, HEIGHT: 150};
         this.gapCoefficient = gapCoefficient;
         this.obstacles = [];
         this.obstacleHistory = [];
