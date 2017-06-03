@@ -69,7 +69,3 @@ html, body {
 #offline-resources {
   display: none;
 }
-
-canvas:focus{
-  border: 5px solid red;
-}

@@ -35,7 +35,7 @@
         this.distanceMeter = null;
         this.distanceRan = 0;
 
-        this.highestScore = 0;
+        this.highestScore = parseInt(localStorage.getItem("highSore") || 0);
 
         this.time = 0;
         this.runningTime = 0;
@@ -1945,7 +1945,7 @@
 
             var storedHighScore = localStorage.getItem("highSore");
             if(storedHighScore) {
-                this.setHighScore(parseInt(storedHighScore));
+                this.setHighScore(this.highestScore = parseInt(storedHighScore));
             }
         },
 
